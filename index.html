@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>R2 PMO Operations Analytics — D. Sprague</title>
+<meta name="description" content="Operations-analyst portfolio: DoD contract-financial stewardship, SOA procurement controls, and a costed process-improvement assessment for the U.S. Army R2 PMO." />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<style>
+  :root{
+    --ink:#12161c; --ink-2:#3a4656; --muted:#6b7683;
+    --bg:#f5f7f9; --panel:#ffffff; --panel-2:#eef1f5;
+    --slate:#1d242e; --slate-2:#2c3746;
+    --signal:#0e8078; --signal-ink:#0a5b55;
+    --good:#2f7a54; --warn:#a6512b; --gold:#a9843c; --blue:#42617c;
+    --line:#dbe0e6; --line-2:#c6cdd6;
+    --mono:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    --sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    --maxw:1120px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+  .num{font-variant-numeric:tabular-nums}
+  a{color:var(--signal-ink)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* masthead */
+  .masthead{background:linear-gradient(180deg,#20293480 0%,transparent 60%),var(--bg);
+    border-bottom:1px solid var(--line);padding:34px 0 26px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--signal-ink);margin:0 0 10px}
+  .masthead h1{font-size:clamp(26px,4.4vw,40px);line-height:1.08;margin:0 0 6px;
+    letter-spacing:-.015em;font-weight:750}
+  .masthead .who{font-size:15px;color:var(--ink-2);margin:0 0 18px}
+  .masthead .who b{color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;background:var(--panel);
+    border:1px solid var(--line-2);color:var(--ink-2);padding:5px 10px;border-radius:2px}
+  .chip b{color:var(--signal-ink)}
+
+  /* BLUF */
+  .bluf{background:var(--slate);color:#e9eef3;padding:22px 0}
+  .bluf .wrap{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start}
+  .bluf .tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:#8fd3ce;
+    border:1px solid #3a4a5a;border-radius:2px;padding:4px 9px;white-space:nowrap;margin-top:2px}
+  .bluf p{margin:0;font-size:16.5px;line-height:1.5}
+
+  /* sections */
+  section{padding:52px 0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:0 0 22px;
+    border-bottom:1px solid var(--line);padding-bottom:12px}
+  .sec-no{font-family:var(--mono);font-size:13px;color:var(--signal-ink);letter-spacing:.08em}
+  .sec-head h2{font-size:clamp(19px,2.6vw,25px);margin:0;font-weight:720;letter-spacing:-.01em}
+  .sec-sub{color:var(--muted);font-size:14px;margin:-10px 0 24px}
+
+  /* metric row */
+  .metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .metric{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--signal);
+    border-radius:3px;padding:16px 15px}
+  .metric .v{font-size:clamp(24px,3.4vw,32px);font-weight:760;letter-spacing:-.02em;line-height:1}
+  .metric .l{font-size:12.5px;color:var(--ink-2);margin-top:9px;line-height:1.35}
+  .metric .n{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:8px;
+    letter-spacing:.02em;line-height:1.4}
+
+  /* two-column engagement layout */
+  .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:start}
+  .lede{font-size:15px;color:var(--ink-2)}
+  .lede p{margin:0 0 12px}
+  .lede strong{color:var(--ink)}
+  .callouts{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .callout{flex:1 1 130px;background:var(--panel-2);border-left:3px solid var(--signal);
+    padding:11px 13px;border-radius:0 3px 3px 0}
+  .callout .cv{font-size:21px;font-weight:740;letter-spacing:-.01em}
+  .callout .cl{font-size:11.5px;color:var(--ink-2);margin-top:3px}
+
+  /* panels & charts */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:18px}
+  .panel h3{margin:0 0 4px;font-size:14px;letter-spacing:.01em}
+  .panel .cap{font-family:var(--mono);font-size:11px;color:var(--muted);
+    letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px}
+  .chart-box{position:relative;height:230px}
+  .chart-box.tall{height:280px}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  caption{caption-side:top;text-align:left;font-family:var(--mono);font-size:11px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-bottom:8px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--ink-2);border-bottom:1.5px solid var(--line-2)}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:hover{background:var(--panel-2)}
+  tfoot td{font-weight:700;border-top:1.5px solid var(--line-2);border-bottom:none}
+  .pill{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:2px;letter-spacing:.03em}
+  .pill.fix{background:#e7eef0;color:var(--slate-2)}
+  .pill.var{background:#f3e7df;color:var(--warn)}
+
+  /* EXSUM block */
+  .exsum{background:var(--panel);border:1px solid var(--line-2);border-radius:4px;overflow:hidden}
+  .exsum .head{background:var(--slate);color:#eef2f6;padding:14px 20px;font-family:var(--mono);
+    font-size:12px;letter-spacing:.12em;text-transform:uppercase;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .exsum .body{padding:22px 24px}
+  .fir{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+  .fir > div{padding:15px 16px;border-right:1px solid var(--line)}
+  .fir > div:last-child{border-right:none}
+  .fir h4{margin:0 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--signal-ink)}
+  .fir p{margin:0;font-size:13.5px;color:var(--ink-2)}
+  .verdict{background:var(--panel-2);border-left:3px solid var(--good);padding:14px 18px;
+    margin:0 0 20px;font-size:14.5px}
+  .verdict b{color:var(--good)}
+
+  /* process cycle */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:14px;position:relative}
+  .step .sn{font-family:var(--mono);font-size:12px;color:var(--signal-ink);letter-spacing:.06em}
+  .step h4{margin:6px 0 4px;font-size:14px}
+  .step .own{font-family:var(--mono);font-size:10.5px;color:var(--warn);text-transform:uppercase;letter-spacing:.05em}
+  .step p{margin:7px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .pipe{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:20px;font-family:var(--mono);font-size:12.5px}
+  .pipe span{background:var(--panel);border:1px solid var(--line-2);padding:7px 12px;border-radius:2px}
+  .pipe .arw{border:none;color:var(--signal);font-weight:700;padding:0 2px}
+
+  /* CPI + controls lists */
+  .lever{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .lever:last-child{border-bottom:none}
+  .lever .lk{font-family:var(--mono);font-size:12px;color:var(--warn);white-space:nowrap;padding-top:2px;letter-spacing:.02em}
+  .lever .ld{font-size:13.5px;color:var(--ink-2)}
+  .ctrl{font-size:13.5px;color:var(--ink-2);padding:8px 0 8px 22px;position:relative;border-bottom:1px dotted var(--line)}
+  .ctrl:before{content:"\25B8";position:absolute;left:0;color:var(--signal)}
+  .ctrl:last-child{border-bottom:none}
+
+  /* stack */
+  .stack{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .stack .col h4{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--signal-ink);margin:0 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .tags{display:flex;flex-wrap:wrap;gap:7px}
+  .tag{font-size:12.5px;background:var(--panel);border:1px solid var(--line-2);padding:5px 10px;border-radius:2px;color:var(--ink-2)}
+
+  /* tracker architecture */
+  .trackers{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .tracker{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--blue);
+    border-radius:3px;padding:14px}
+  .tracker .tt{font-size:14px;font-weight:720;margin:0 0 2px}
+  .tracker .tk{font-family:var(--mono);font-size:10.5px;color:var(--warn);text-transform:uppercase;
+    letter-spacing:.05em;margin-bottom:9px}
+  .tracker p{margin:0;font-size:12.5px;color:var(--ink-2)}
+  .trackerflow{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+    margin:24px 0 6px;font-family:var(--mono);font-size:12.5px}
+  .trackerflow .grp{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:420px}
+  .trackerflow .box{background:var(--panel);border:1px solid var(--line-2);padding:7px 11px;border-radius:2px}
+  .trackerflow .roll{background:var(--slate);color:#eef2f6;border-color:var(--slate)}
+  .trackerflow .arw{color:var(--signal);font-weight:700;font-size:17px}
+  .subhead{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--signal-ink);margin:34px 0 16px;border-bottom:1px solid var(--line);padding-bottom:8px}
+
+  /* reporting & process modernization */
+  .repcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .repcard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--signal);
+    border-radius:0 4px 4px 0;padding:18px}
+  .repcard h4{margin:0 0 8px;font-size:15px;line-height:1.25}
+  .repcard p{margin:0 0 12px;font-size:13.5px;color:var(--ink-2)}
+
+  /* sticky top bar + metric selector */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(245,247,249,.94);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .tb-inner{display:flex;align-items:center;justify-content:space-between;height:54px}
+  .tb-brand{font-family:var(--mono);font-size:12.5px;letter-spacing:.07em;color:var(--ink);
+    text-decoration:none;font-weight:600;white-space:nowrap}
+  .tb-brand span{color:var(--muted)}
+  .selector{position:relative}
+  .sel-btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px;
+    background:var(--slate);color:#eef2f6;border:1px solid var(--slate);padding:9px 14px;border-radius:3px;
+    cursor:pointer;letter-spacing:.03em}
+  .sel-btn .chev{transition:transform .2s ease}
+  .sel-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+  .sel-menu{position:absolute;right:0;top:calc(100% + 7px);min-width:296px;max-width:88vw;background:var(--panel);
+    border:1px solid var(--line-2);border-radius:5px;box-shadow:0 14px 34px rgba(18,22,28,.18);overflow:hidden}
+  .sel-menu[hidden]{display:none}
+  .sel-opt{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);
+    padding:12px 15px;cursor:pointer;font-family:var(--sans);font-size:13.5px;color:var(--ink);line-height:1.3}
+  .sel-opt:last-child{border-bottom:none}
+  .sel-opt:hover,.sel-opt:focus-visible,.sel-opt.active{background:var(--panel-2)}
+  .sel-opt .ok{font-family:var(--mono);font-size:10.5px;color:var(--muted);display:block;margin-top:3px;letter-spacing:.02em}
+  .sel-opt.active .ok{color:var(--signal-ink)}
+  .sel-opt.home{background:var(--slate);color:#eef2f6;font-family:var(--mono);font-size:12px;letter-spacing:.04em}
+  .sel-opt.home:hover{background:var(--slate-2)}
+
+  /* metric analysis view */
+  #analysisView{padding:40px 0 24px}
+  .backbtn{font-family:var(--mono);font-size:12px;background:none;border:1px solid var(--line-2);
+    color:var(--ink-2);padding:8px 13px;border-radius:3px;cursor:pointer;margin-bottom:24px;letter-spacing:.03em}
+  .backbtn:hover{background:var(--panel-2)}
+  .an-head .eyebrow{margin-bottom:8px}
+  .an-kpi{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin:2px 0 8px}
+  .an-val{font-size:clamp(40px,7vw,62px);font-weight:770;letter-spacing:-.03em;line-height:.95;color:var(--ink)}
+  .an-lab{font-size:15px;color:var(--ink-2)}
+  .an-tag{font-size:16.5px;color:var(--ink-2);max-width:74ch;margin:0 0 30px;line-height:1.5}
+  .an-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+  .an-block{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:16px 18px}
+  .an-block h4{margin:0 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--signal-ink)}
+  .an-block p{margin:0;font-size:14px;color:var(--ink-2)}
+  .an-interp{background:var(--panel-2);border-left:3px solid var(--signal);padding:16px 20px;
+    border-radius:0 4px 4px 0;margin-top:22px}
+  .an-interp h4{margin:0 0 7px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--signal-ink)}
+  .an-interp p{margin:0;font-size:14.5px;color:var(--ink)}
+  .an-interp.an-rec{border-left-color:var(--good)}
+  .an-interp.an-rec h4{color:var(--good)}
+
+  /* scroll reveal */
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  /* footer / repo */
+  footer{background:var(--slate);color:#cfd7df;padding:40px 0}
+  footer .wrap{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+  footer h3{margin:0 0 6px;color:#fff;font-size:18px}
+  footer p{margin:0;font-size:13.5px;line-height:1.6}
+  footer a{color:#8fd3ce}
+  .repobtn{font-family:var(--mono);font-size:13px;border:1px solid #46586a;color:#e9eef3;
+    padding:11px 16px;border-radius:3px;text-decoration:none;white-space:nowrap}
+
+  .note{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+  @media (max-width:860px){
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .trackers{grid-template-columns:repeat(2,1fr)}
+    .repcards{grid-template-columns:1fr}
+    .trackerflow{font-size:11.5px}
+    .an-grid2{grid-template-columns:1fr}
+    .tb-brand{display:none}
+    .grid{grid-template-columns:1fr;gap:24px}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .stack{grid-template-columns:1fr}
+    .fir{grid-template-columns:1fr}
+    .fir > div{border-right:none;border-bottom:1px solid var(--line)}
+    .bluf .wrap{grid-template-columns:1fr}
+    footer .wrap{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1 !important;transform:none !important;transition:none}}
+  :focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+  <div class="wrap tb-inner">
+    <a class="tb-brand" href="#" id="tbHome" aria-label="Back to full briefing">R2 OPS ANALYTICS <span>// D. Sprague</span></a>
+    <div class="selector" id="selector">
+      <button class="sel-btn" id="selBtn" type="button" aria-haspopup="true" aria-expanded="false">
+        <span id="selLabel">Analyze a metric</span>
+        <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="sel-menu" id="selMenu" role="menu" hidden></div>
+    </div>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Knowesis Inc.</p>
+    <h1>Making DoD contract spend auditable and defensible.</h1>
+    <p class="who"><b>Derrick M. Sprague</b> — Operations Analyst, Knowesis Inc. · Supporting the U.S. Army Ready and Resilient (R2) PMO</p>
+    <div class="chips">
+      <span class="chip"><b>CLIENT</b> &nbsp;U.S. Army R2 PMO</span>
+      <span class="chip"><b>SCOPE</b> &nbsp;32 DoD installations</span>
+      <span class="chip"><b>CEILING</b> &nbsp;$2.72M FY26 ODC</span>
+      <span class="chip"><b>CLEARANCE</b> &nbsp;Secret · TS/SCI eligible</span>
+      <span class="chip"><b>STACK</b> &nbsp;Excel · Power BI · R · SQL · JS</span>
+    </div>
+  </div>
+</header>
+
+<div class="bluf" id="bluf">
+  <div class="wrap">
+    <span class="tag">BLUF</span>
+    <p id="bluf-text">An R2 PMO operations-analyst function that chains four travel and supply trackers into a single auditable YTD roll-up — sustaining continuous burn-rate visibility against a $2.72M ceiling across 32 sites, converting a $55.5K training event into a documented 23.7% underrun, and modernizing how the PMO reports through automated A&amp;L briefs and a revamped, 32-site supply-order SOP.</p>
+  </div>
+</div>
+
+<section id="analysisView" hidden><div class="wrap" id="anWrap"></div></section>
+
+<main id="mainView">
+<!-- 1.0 VALUE -->
+<section id="value">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">1.0</span><h2>Value at a Glance</h2></div>
+    <div class="metrics" id="metrics"><!-- injected --></div>
+    <p class="note">Metrics are drawn from delivered work products (FY26 ODC/SOA financial position and the CST26 PE fiscal assessment). See §2–§3 for the underlying tables and charts.</p>
+  </div>
+</section>
+
+<!-- 2.0 ENGAGEMENT A -->
+<section id="odc" style="background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">2.0</span><h2>ODC Financial Stewardship &amp; Tracker Architecture</h2></div>
+    <p class="sec-sub">Four travel and supply trackers, each reconciling projected against incurred cost, chained through Excel into one YTD roll-up that feeds the Government-facing briefs.</p>
+
+    <div class="trackers" id="trackers"><!-- injected --></div>
+    <div class="trackerflow">
+      <div class="grp">
+        <span class="box">MTT</span><span class="box">Local Travel</span><span class="box">Site Visits</span><span class="box">SOA</span>
+      </div>
+      <span class="arw">→</span>
+      <span class="box roll">YTD Budget Tracker</span>
+      <span class="arw">→</span>
+      <span class="box">TOSR &amp; A&amp;L Briefs</span>
+    </div>
+    <p class="note" style="text-align:center;margin-bottom:6px">Chained Excel formulas reconcile projected vs. incurred at each source, then roll up — by location and month — into the Government-facing reporting products.</p>
+
+    <div class="subhead">2.1 &nbsp;ODC position &amp; procurement controls</div>
+    <div class="grid">
+      <div class="lede">
+        <p>The Supply Order Authorization (SOA) cycle is the controlled path by which a Performance Center converts a validated field need into a Government-authorized, reimbursed purchase. I own the <strong>finance review, data normalization, and the trackers</strong> that turn each authorized order into estimated-versus-incurred dollars and roll it up — by location and month — into the Government-facing TOSR and A&amp;L briefs.</p>
+        <p>The result is <strong>continuous burn-rate visibility</strong>: leadership always sees committed spend and remaining runway against the ceiling in one place, and every purchase carries written justification, dual authorization, and a defensible audit trail.</p>
+        <div class="callouts">
+          <div class="callout"><div class="cv" data-count="2261410.93" data-fmt="usd0">$2.26M</div><div class="cl">Uncommitted ODC runway</div></div>
+          <div class="callout"><div class="cv" data-count="7" data-fmt="int">7</div><div class="cl">SOAs in current cycle</div></div>
+          <div class="callout"><div class="cv" data-count="83" data-fmt="pct">83%</div><div class="cl">Ceiling still available</div></div>
+        </div>
+        <h3 style="margin:22px 0 10px;font-size:13px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--signal-ink)">Controls enforced</h3>
+        <div id="controls"><!-- injected --></div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>FY26 ODC position</h3>
+          <p class="cap">Committed vs. uncommitted against the ceiling</p>
+          <div class="chart-box"><canvas id="chartOdc"></canvas></div>
+        </div>
+        <div class="panel" style="margin-top:16px">
+          <table id="soaTable">
+            <caption>SOA spend families — FY26 YTD</caption>
+            <thead><tr><th>Commitment line</th><th class="n">Amount</th></tr></thead>
+            <tbody><!-- injected --></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.0 ENGAGEMENT B -->
+<section id="cst26">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">3.0</span><h2>CST26 PE Fiscal Assessment &amp; Process Improvement</h2></div>
+    <p class="sec-sub">A 44-day, 8-deployment training event costed to the dollar, benchmarked against authorization, and returned with a costed CPI plan.</p>
+
+    <div class="callouts" style="margin-bottom:28px">
+      <div class="callout"><div class="cv" data-count="191" data-fmt="int">191</div><div class="cl">PE-training-days delivered</div></div>
+      <div class="callout"><div class="cv" data-count="55554.66" data-fmt="usd0">$55.6K</div><div class="cl">Total incurred cost</div></div>
+      <div class="callout"><div class="cv" data-count="23.7" data-fmt="pct">23.7%</div><div class="cl">Under authorization</div></div>
+      <div class="callout"><div class="cv" data-count="27.78" data-fmt="usd2">$27.78</div><div class="cl">Cost per cadet (~2,000)</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Where the $55,554.66 went</h3>
+        <p class="cap">Spend by category — all 8 deployments</p>
+        <div class="chart-box tall"><canvas id="chartCat"></canvas></div>
+      </div>
+      <div>
+        <div class="panel">
+          <h3>Fixed floor vs. controllable tail</h3>
+          <p class="cap">Only the 32.4% tail is discretionary — the CPI target</p>
+          <div class="chart-box" style="height:120px"><canvas id="chartSplit"></canvas></div>
+          <p style="font-size:13px;color:var(--ink-2);margin:12px 0 0">Two-thirds of spend is non-discretionary Government per diem and lodging, so contractor markup on the recurring cost is effectively zero. Every cost lever below applies to the <strong>$18,015 (32.4%)</strong> travel tail.</p>
+        </div>
+        <div class="panel" style="margin-top:16px">
+          <h3>Cost discipline across deployments</h3>
+          <p class="cap">$ per training day — steady-state, travel days cut</p>
+          <div class="chart-box"><canvas id="chartPe"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:26px">
+      <table id="catTable">
+        <caption>Aggregate expense summary — CST26 (MTT 26-93)</caption>
+        <thead><tr><th>Expense category</th><th class="n">Total</th><th class="n">% of total</th><th>Type</th></tr></thead>
+        <tbody><!-- injected --></tbody>
+        <tfoot><tr><td>Total incurred</td><td class="n">$55,554.66</td><td class="n">100%</td><td></td></tr></tfoot>
+      </table>
+    </div>
+
+    <h3 style="margin:34px 0 6px;font-size:16px">Process improvement plan (CPI)</h3>
+    <p class="sec-sub">Banked against the controllable tail — pooling, travel discipline, and single-packet control.</p>
+    <div id="cpi" class="panel"><!-- injected --></div>
+  </div>
+</section>
+
+<!-- 4.0 REPORTING & PROCESS MODERNIZATION -->
+<section id="reporting">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">4.0</span><h2>Reporting &amp; Process Modernization</h2></div>
+    <p class="sec-sub">Making the numbers usable — automating the briefs and setting a single supply-order standard across all 32 AOR sites.</p>
+    <div class="repcards" id="repGrid"><!-- injected --></div>
+  </div>
+</section>
+
+<!-- 5.0 EXSUM -->
+<section id="exsum" style="background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">5.0</span><h2>Executive Summary</h2></div>
+    <div class="exsum">
+      <div class="head"><span>EXSUM // R2 PMO Operations Analytics</span><span>Handling: UNCLASSIFIED // Portfolio</span></div>
+      <div class="body">
+        <div class="verdict"><b>VERDICT:</b> Fiscal stewardship is demonstrated and disciplined. Spend on the CST26 event landed <strong>23.7% under authorization</strong> at <strong>$27.78 per cadet</strong>, and the $2.72M ODC ceiling is governed by an auditable eight-step cycle holding <strong>83.2% runway</strong>. The open risk is <em>effectiveness</em>: utilization and outcome metrics are not yet captured, so return on the discretionary tail is asserted, not yet proven.</div>
+        <div class="fir">
+          <div>
+            <h4>5.1 Facts</h4>
+            <p>Four chained trackers (MTT, local travel, site visits, SOA) reconcile projected vs. incurred into one YTD roll-up. CST26: 191 training-days across 8 deployments; $55,554.66 incurred (76.3% of the $72,821.29 authorization); ~$27.78/cadet; 67.6% fixed / 32.4% discretionary. FY26 ODC ceiling $2.72M, $468,619 committed, 83.2% remaining.</p>
+          </div>
+          <div>
+            <h4>5.2 Interpretation</h4>
+            <p>Cost is governed by travel logistics, not daily rates, and came in well under authorization — fiscally efficient. Procurement is defensible by design, and the reporting layer was modernized: A&amp;L briefs automated with J. Choun and the SOA SOP standardized across all 32 sites.</p>
+          </div>
+          <div>
+            <h4>5.3 Recommendation</h4>
+            <p>Accept the spend as justified. Next cycle, pair the fiscal roll-up with utilization/outcome metrics and bank savings from the 32.4% tail via rental pooling, fly-vs-drive discipline, and single-packet control.</p>
+          </div>
+        </div>
+        <table style="margin-top:22px">
+          <caption>Cost against authorization — by segment</caption>
+          <thead><tr><th>Segment</th><th class="n">Incurred</th><th class="n">Share</th></tr></thead>
+          <tbody>
+            <tr><td>Batch 1 — 4 dedicated deployments</td><td class="n">$25,363.61</td><td class="n">45.7%</td></tr>
+            <tr><td>Batch 2 — 3 dedicated deployments</td><td class="n">$18,777.86</td><td class="n">33.8%</td></tr>
+            <tr><td>Bridge deployment — spans both batches</td><td class="n">$11,413.19</td><td class="n">20.5%</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>Total incurred</td><td class="n">$55,554.66</td><td class="n">100%</td></tr>
+            <tr><td>Authorized (COTA)</td><td class="n">$72,821.29</td><td class="n">—</td></tr>
+            <tr><td>Underrun vs. authorization</td><td class="n">$17,266.63</td><td class="n">23.7% under</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.0 PROCESS -->
+<section id="process">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">6.0</span><h2>The SOA Cycle — End to End</h2></div>
+    <p class="sec-sub">Eight sequential steps with the originator, reviewer, and authorizer always distinct.</p>
+    <div class="steps" id="steps"><!-- injected --></div>
+    <h3 style="margin:30px 0 0;font-size:13px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--signal-ink)">Data pipeline — one pipe, source to Government brief</h3>
+    <div class="pipe" id="pipe"><!-- injected --></div>
+  </div>
+</section>
+
+<!-- 6.0 STACK -->
+<section id="stack" style="background:var(--panel-2);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-no">7.0</span><h2>Toolstack &amp; Methods</h2></div>
+    <div class="stack" id="stackGrid"><!-- injected --></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h3>Built as a working product.</h3>
+      <p>Static front end (HTML · CSS · vanilla JS · Chart.js) with an optional Node/Express API serving the same data layer. Data is externalized in <code style="color:#8fd3ce">/data/portfolio-data.json</code> — a single edit switches every figure to notional.<br>
+      Derrick M. Sprague · Operations Analyst · <a href="mailto:Derrick.m.sprague@gmail.com">Derrick.m.sprague@gmail.com</a> · <a href="https://linkedin.com/in/derrickmsprague/">linkedin.com/in/derrickmsprague</a></p>
+    </div>
+    <a class="repobtn" href="#" id="repoLink">&lt;/&gt;&nbsp; View source on GitHub</a>
+  </div>
+</footer>
+
+<script>
+/* ---- data: mirrors /data/portfolio-data.json (embedded so the page runs with zero setup) ---- */
+const DATA = {
+  headline:[
+    {display:"$2.72M",label:"FY26 ODC ceiling modeled & tracked",note:"cost-reimbursement line under a Firm-Fixed-Price TO"},
+    {display:"32",label:"AOR sites under continuous fiscal reporting",note:"revamped SOA SOP + MS Teams guidance deployed to all 32"},
+    {display:"23.7%",label:"cost underrun delivered vs authorization",note:"CST26: $55.5K incurred vs $72.8K authorized"},
+    {display:"83%",label:"ODC runway held with live burn-rate visibility",note:"$2.26M uncommitted of the $2.72M FY26 ceiling"},
+    {display:"50+",label:"formula errors eliminated across 12 workbooks",note:"accuracy hardening of the financial trackers"}
+  ],
+  odc:{ceiling:2715719.20,committed:464004.82,uncommitted:2261410.93,
+    families:[
+      {name:"Staples & Amazon (YTD)",amount:89452.37},
+      {name:"Other Authorizations (YTD)",amount:20793.69},
+      {name:"Pending Authorizations",amount:51152.00}
+    ],
+    controls:[
+      "Segregation of duties — originator, reviewer, and authorizer are always distinct",
+      "+10% shipping/tax buffer sets each request's authorization limit",
+      "Purchases over $3,500 require three competitive quotes",
+      "Dual authorization (APM/PM + COR-RA) before any funds are committed",
+      "Monthly QA spot checks with memo-documented corrective actions"
+    ]},
+  cst26:{fixed:37539.22,discretionary:18015.44,
+    categories:[
+      {name:"Lodging (room + tax)",amount:23888.22,pct:43.0,type:"Fixed"},
+      {name:"Meals & incidentals",amount:13651.00,pct:24.6,type:"Fixed"},
+      {name:"Rental car (+ fuel)",amount:10875.16,pct:19.6,type:"Variable"},
+      {name:"Airfare (+ baggage)",amount:6326.80,pct:11.4,type:"Variable"},
+      {name:"Ground transport & fees",amount:813.48,pct:1.5,type:"Variable"}
+    ],
+    perDeployment:[
+      {id:"PE-01",v:193.21},{id:"PE-02",v:195.09},{id:"PE-03",v:191.08},{id:"PE-04",v:194.18},
+      {id:"PE-05",v:196.92},{id:"PE-06",v:194.27},{id:"PE-07",v:194.57},{id:"PE-08",v:259.39}
+    ],
+    cpi:[
+      {lever:"Rental pooling",detail:"Make shared rentals the standard for co-located PEs; one shared rental already ran $1,204 vs. two singles."},
+      {lever:"Fly-vs-drive",detail:"Mandate a documented fly-vs-POV cost comparison in the travel authorization; two PEs drove 300–340 mi."},
+      {lever:"Advance airfare",detail:"Book airfare ≥14 days out to close the $514–$790 fare spread."},
+      {lever:"Single-packet control",detail:"One coordinator as packet owner per PE, with a pre-submission checklist gate before COR-RA review."},
+      {lever:"ER standardization",detail:"Flat PDF/XLSX (not Adobe Portfolios) + task-order and date-match gates; caught a wrong TO citation and an uncountersigned ER."}
+    ]},
+  process:[
+    {n:"1.0",name:"Identify & Build",own:"Account User",d:"Identify the requirement, research price/quantity, build the vendor cart."},
+    {n:"2.0",name:"Draft the Form",own:"Account User",d:"Purpose, need-by date, itemized request, enclosure count."},
+    {n:"3.0",name:"Submit Packet",own:"Account User",d:"Consolidate form + cart screenshot into one PDF, filed by command and month."},
+    {n:"4.0",name:"PMO Review",own:"Ops / Training Analyst",d:"On-the-spot review for accuracy, compliance, and lowest available cost."},
+    {n:"5.0",name:"Authorize",own:"APM/PM → COR-RA",d:"Dual signature — the Government authorization to purchase."},
+    {n:"6.0",name:"Purchase",own:"Training Analyst",d:"Execute the buy once COR-RA authorization is in place."},
+    {n:"7.0",name:"Record & Track",own:"Ops Analyst",d:"Log estimated vs incurred cost and status; detail to PERFAC."},
+    {n:"8.0",name:"Report & QA",own:"PMO",d:"Roll into YTD/by-location views feeding the TOSR & A&L briefs; monthly QA."}
+  ],
+  trackers:[
+    {name:"MTT Tracker",tracks:"Mobile Training Team events",d:"Incurred vs. projected cost per event — $301K spent against $527K projected YTD; the CST26 assessment is one output."},
+    {name:"Local Travel",tracks:"Per-trip status & cost",d:"Continuously updated, with $2.1K local mileage logged YTD; PCMs are contacted directly when a packet is returned for correction."},
+    {name:"Site Visits",tracks:"Management site circulation",d:"$50.4K spent against $66.1K projected — about 24% under; the delta is surfaced for leadership decisions."},
+    {name:"SOA Tracker",tracks:"Supply Order Authorizations",d:"Each order estimated vs. incurred — $110K supply spend YTD across 30+ sites, $51K pending."}
+  ],
+  reporting:[
+    {title:"A&L brief reconstruction & automation",d:"Rebuilt the A&L slides into a PCM-friendly format and — in collaboration with J. Choun — automated the report build to cut manual data extraction and time/task waste.",tags:["PCM usability","automation","waste reduction"]},
+    {title:"SOA SOP revamp — all 32 AOR sites",d:"Rewrote the entire Supply Order Authorization SOP and issued guidance to every AOR site, resolving prior filing/naming ambiguity into a single standard.",tags:["32 sites","single standard"]},
+    {title:"MS Teams community folder",d:"Stood up a Teams community folder with explicit, step-by-step guidance for navigating the supply-order process.",tags:["adoption","self-service"]}
+  ],
+  pipeline:["SOA Request Form","PERFAC","Option Year 1 Tracker","YTD / By-Location","TOSR & A&L Briefs"],
+  stack:{
+    "Analytics & Data":["Excel / Power Query","Power BI","Tableau","R","SQL","Financial Modeling"],
+    "Web & Delivery":["HTML5","CSS3","JavaScript (ES6)","Chart.js","Node.js / Express"],
+    "Analytic Methods":["ICD 203","Lean Six Sigma (GB)","OSINT","Cost / Variance Analysis","CPI Design"]
+  }
+};
+
+/* ---- formatters ---- */
+const usd0=n=>"$"+Math.round(n).toLocaleString("en-US");
+const usd2=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const usdK=n=> n>=1e6 ? "$"+(n/1e6).toFixed(2)+"M" : "$"+(n/1e3).toFixed(1)+"K";
+const reduce = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ---- inject content ---- */
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+
+const mWrap=document.getElementById("metrics");
+DATA.headline.forEach(m=>{
+  const d=el("div","metric");
+  d.innerHTML=`<div class="v">${m.display}</div><div class="l">${m.label}</div><div class="n">${m.note}</div>`;
+  mWrap.appendChild(d);
+});
+
+const trWrap=document.getElementById("trackers");
+DATA.trackers.forEach(t=>{
+  const d=el("div","tracker");
+  d.innerHTML=`<div class="tt">${t.name}</div><div class="tk">${t.tracks}</div><p>${t.d}</p>`;
+  trWrap.appendChild(d);
+});
+
+const repWrap=document.getElementById("repGrid");
+DATA.reporting.forEach(r=>{
+  const d=el("div","repcard");
+  d.innerHTML=`<h4>${r.title}</h4><p>${r.d}</p><div class="tags">${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>`;
+  repWrap.appendChild(d);
+});
+
+const ctrlWrap=document.getElementById("controls");
+DATA.odc.controls.forEach(c=>ctrlWrap.appendChild(el("div","ctrl",c)));
+
+const soaBody=document.querySelector("#soaTable tbody");
+let soaTotal=0;
+DATA.odc.families.forEach(f=>{soaTotal+=f.amount;
+  soaBody.appendChild(el("tr",null,`<td>${f.name}</td><td class="n">${usd2(f.amount)}</td>`));});
+const soaFoot=el("tfoot",null,`<tr><td>Total (SOA families)</td><td class="n">${usd2(soaTotal)}</td></tr>`);
+document.getElementById("soaTable").appendChild(soaFoot);
+
+const catBody=document.querySelector("#catTable tbody");
+DATA.cst26.categories.forEach(c=>{
+  const pill=c.type==="Fixed"?'<span class="pill fix">Fixed</span>':'<span class="pill var">Variable</span>';
+  catBody.appendChild(el("tr",null,`<td>${c.name}</td><td class="n">${usd2(c.amount)}</td><td class="n">${c.pct.toFixed(1)}%</td><td>${pill}</td>`));
+});
+
+const cpiWrap=document.getElementById("cpi");
+DATA.cst26.cpi.forEach(l=>{
+  const d=el("div","lever");
+  d.innerHTML=`<div class="lk">${l.lever}</div><div class="ld">${l.detail}</div>`;
+  cpiWrap.appendChild(d);
+});
+
+const stepsWrap=document.getElementById("steps");
+DATA.process.forEach(s=>{
+  const d=el("div","step");
+  d.innerHTML=`<div class="sn">${s.n}</div><h4>${s.name}</h4><div class="own">${s.own}</div><p>${s.d}</p>`;
+  stepsWrap.appendChild(d);
+});
+
+const pipeWrap=document.getElementById("pipe");
+DATA.pipeline.forEach((p,i)=>{
+  if(i)pipeWrap.appendChild(el("span","arw","→"));
+  pipeWrap.appendChild(el("span",null,p));
+});
+
+const stackGrid=document.getElementById("stackGrid");
+Object.entries(DATA.stack).forEach(([k,arr])=>{
+  const col=el("div","col");
+  col.innerHTML=`<h4>${k}</h4><div class="tags">${arr.map(t=>`<span class="tag">${t}</span>`).join("")}</div>`;
+  stackGrid.appendChild(col);
+});
+
+/* ---- count-up animation for callouts ---- */
+function animateCount(node){
+  const target=parseFloat(node.dataset.count), fmt=node.dataset.fmt;
+  const render=v=>{
+    if(fmt==="usd0")node.textContent=usdK(v);
+    else if(fmt==="usd2")node.textContent=usd2(v);
+    else if(fmt==="pct")node.textContent=v.toFixed(1)+"%";
+    else node.textContent=Math.round(v).toLocaleString("en-US");
+  };
+  if(reduce){render(target);return;}
+  let start=null,dur=900;
+  function tick(ts){start=start||ts;const p=Math.min((ts-start)/dur,1);
+    render(target*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick);}
+  requestAnimationFrame(tick);
+}
+const io=new IntersectionObserver((ents)=>{
+  ents.forEach(e=>{if(e.isIntersecting){animateCount(e.target);io.unobserve(e.target);}});
+},{threshold:.6});
+document.querySelectorAll("[data-count]").forEach(n=>io.observe(n));
+
+/* ---- charts (Chart.js) — tables remain the fallback if the CDN is unavailable ---- */
+const RAMP=["#0e8078","#42617c","#a9843c","#a6512b","#8a95a1"];
+function buildCharts(){
+  if(!window.Chart){return;}
+  Chart.defaults.font.family='"Helvetica Neue",Helvetica,Arial,sans-serif';
+  Chart.defaults.font.size=12;
+  Chart.defaults.color="#3a4656";
+
+  new Chart(document.getElementById("chartOdc"),{
+    type:"bar",
+    data:{labels:["FY26 ODC"],datasets:[
+      {label:"Committed",data:[DATA.odc.committed],backgroundColor:"#a6512b",stack:"s"},
+      {label:"Uncommitted runway",data:[DATA.odc.uncommitted],backgroundColor:"#0e8078",stack:"s"}
+    ]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>c.dataset.label+": "+usd0(c.raw)}}},
+      scales:{x:{stacked:true,ticks:{callback:v=>usdK(v)}},y:{stacked:true}}}
+  });
+
+  new Chart(document.getElementById("chartCat"),{
+    type:"doughnut",
+    data:{labels:DATA.cst26.categories.map(c=>c.name),
+      datasets:[{data:DATA.cst26.categories.map(c=>c.amount),backgroundColor:RAMP,borderColor:"#fff",borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"58%",
+      plugins:{legend:{position:"right",labels:{boxWidth:12,padding:9,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.label+": "+usd2(c.raw)+" ("+DATA.cst26.categories[c.dataIndex].pct.toFixed(1)+"%)"}}}}
+  });
+
+  new Chart(document.getElementById("chartSplit"),{
+    type:"bar",
+    data:{labels:["CST26"],datasets:[
+      {label:"Fixed floor (67.6%)",data:[DATA.cst26.fixed],backgroundColor:"#42617c",stack:"s"},
+      {label:"Discretionary tail (32.4%)",data:[DATA.cst26.discretionary],backgroundColor:"#a6512b",stack:"s"}
+    ]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+": "+usd0(c.raw)}}},
+      scales:{x:{stacked:true,display:false},y:{stacked:true,display:false}}}
+  });
+
+  new Chart(document.getElementById("chartPe"),{
+    type:"bar",
+    data:{labels:DATA.cst26.perDeployment.map(p=>p.id),
+      datasets:[{data:DATA.cst26.perDeployment.map(p=>p.v),
+        backgroundColor:DATA.cst26.perDeployment.map(p=>p.v>210?"#a6512b":"#0e8078")}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>"$"+c.raw.toFixed(2)+" / training day"}}},
+      scales:{y:{ticks:{callback:v=>"$"+v}},x:{ticks:{font:{size:10}}}}}
+  });
+}
+if(window.Chart){buildCharts();}else{window.addEventListener("load",buildCharts);}
+
+/* repo link placeholder — replace with your repository URL */
+document.getElementById("repoLink").addEventListener("click",e=>{e.preventDefault();});
+
+/* ===================== scroll reveal ===================== */
+const revealIO = reduce ? null : new IntersectionObserver((ents)=>{
+  ents.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); revealIO.unobserve(e.target); } });
+},{threshold:.12, rootMargin:"0px 0px -40px 0px"});
+const REVEAL_SEL=".metric,.tracker,.repcard,.panel,.step,.exsum,.trackerflow,.pipe,.stack .col,.callout,.an-block,.an-interp";
+function applyReveal(root){
+  if(reduce||!revealIO)return;
+  root.querySelectorAll(REVEAL_SEL).forEach(n=>{
+    if(!n.classList.contains("reveal")){ n.classList.add("reveal"); revealIO.observe(n); }
+  });
+}
+applyReveal(document);
+
+/* ===================== metric analysis views ===================== */
+function trackerFlowHTML(){
+  return `<div class="trackers">`+DATA.trackers.map(t=>`<div class="tracker"><div class="tt">${t.name}</div><div class="tk">${t.tracks}</div><p>${t.d}</p></div>`).join("")
+    +`</div><div class="trackerflow"><div class="grp"><span class="box">MTT</span><span class="box">Local Travel</span><span class="box">Site Visits</span><span class="box">SOA</span></div><span class="arw">→</span><span class="box roll">YTD Budget Tracker</span><span class="arw">→</span><span class="box">TOSR &amp; A&amp;L Briefs</span></div>`;
+}
+function reportingHTML(){
+  return `<div class="repcards">`+DATA.reporting.map(r=>`<div class="repcard"><h4>${r.title}</h4><p>${r.d}</p><div class="tags">${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`).join("")+`</div>`;
+}
+
+const ANALYSES={
+  odc:{ menuLabel:"ODC Budget & Runway", kpi:"$2.72M", kpiLabel:"FY26 ODC ceiling",
+    tag:"$464K committed year-to-date against a $2.72M ceiling — roughly 83% still uncommitted, with spend concentrated in the summer training surge.",
+    measures:"The full FY26 Other Direct Costs (ODC) authority under the task order, what has been committed to date, and how much remains uncommitted after Travel and Supply obligations.",
+    derivation:"Ceiling is the contract ODC line. Committed = actual Travel + Supply spend rolled up by month. Uncommitted = ceiling − commitments. Monthly spend is the sum of MTT, site-visit, local-mileage, and supply outlays.",
+    chartCap:"Committed ODC spend by month (Oct–Sep)",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"],
+      datasets:[{data:[64283.51,14227.5,21513.28,27072.04,45229.23,30790.99,63030.96,83658.91,100773.85,12633.04,791.5,0],backgroundColor:"#0e8078"}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>usd0(x.raw)}}},scales:{y:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"FY26 ODC financial position (YTD)",head:["Line","Amount"],numeric:[1],
+      rows:[["ODC ceiling","$2,715,719.20"],["Committed (Travel + Supply) YTD","$464,004.82"],
+        ["\u2014 Travel (MTT + site visits + miles)","$353,758.76"],["\u2014 Supply / SOA (Amazon + Staples + other)","$110,246.06"],
+        ["Pending SOAs (not yet incurred)","$51,152.00"],["Total projected commitments","$644,628.20"],
+        ["Uncommitted","$2,261,410.93"],["Remaining","83%"]]},
+    interp:"Spend is disciplined and back-loaded to the summer training surge — May, June, and July alone account for roughly $197K of the $464K committed. With about 83% of the ceiling uncommitted, the program keeps substantial runway while every dollar is reconciled monthly into the Government-facing briefs."
+  },
+  underrun:{ menuLabel:"CST26 Cost Underrun", kpi:"23.7%", kpiLabel:"under authorization",
+    tag:"Combined incurred cost for the CST26 event landed $17,266.63 below the authorized COTA — about a quarter under, at ~$27.78 per cadet.",
+    measures:"How far combined incurred cost for MTT 26-93 fell below the authorized ceiling (COTA).",
+    derivation:"Underrun % = (authorized − incurred) ÷ authorized = ($72,821.29 − $55,554.66) ÷ $72,821.29 = 23.7%.",
+    chartCap:"Incurred vs. authorized",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["Authorized COTA","Incurred"],
+      datasets:[{data:[72821.29,55554.66],backgroundColor:["#2c3746","#0e8078"]}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>usd2(x.raw)}}},scales:{y:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"Cost against authorization — by segment",head:["Segment","Incurred","Share"],numeric:[1,2],
+      rows:[["Batch 1 — 4 dedicated","$25,363.61","45.7%"],["Batch 2 — 3 dedicated","$18,777.86","33.8%"],["Bridge deployment","$11,413.19","20.5%"]],
+      foot:[["Total incurred","$55,554.66","100%"],["Authorized (COTA)","$72,821.29","—"],["Underrun","$17,266.63","23.7% under"]]},
+    interp:"Efficiency is proven — nearly a quarter under authorization. Effectiveness is not: no utilization or outcome data was captured, so return on the discretionary tail is asserted, not demonstrated.",
+    rec:"Next cycle, capture PE utilization rates and cadet-performance outcomes and tie them to spend to convert this from an efficiency argument into an effectiveness one."
+  },
+  expense:{ menuLabel:"Expense Composition", kpi:"32.4%", kpiLabel:"controllable travel tail",
+    tag:"Two-thirds of spend is a non-discretionary Government floor; only the 32.4% travel tail is controllable — and it's where every process-improvement lever applies.",
+    measures:"How the $55,554.66 breaks down by category, and what share is discretionary versus a fixed per-diem / lodging floor.",
+    derivation:"Fixed = M&IE + lodging + lodging tax (67.6%). Discretionary = rental + fuel + airfare + baggage + ground/fees (32.4%).",
+    chartCap:"Spend by category — all 8 deployments",
+    chart:(c)=> new Chart(c,{type:"doughnut",data:{labels:DATA.cst26.categories.map(x=>x.name),
+      datasets:[{data:DATA.cst26.categories.map(x=>x.amount),backgroundColor:RAMP,borderColor:"#fff",borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"58%",plugins:{legend:{position:"right",
+        labels:{boxWidth:12,padding:8,font:{size:11}}},tooltip:{callbacks:{label:x=>x.label+": "+usd2(x.raw)+" ("+DATA.cst26.categories[x.dataIndex].pct.toFixed(1)+"%)"}}}}}),
+    table:{caption:"Aggregate expense summary",head:["Category","Total","% of total","Type"],numeric:[1,2],
+      rows:DATA.cst26.categories.map(x=>[x.name,usd2(x.amount),x.pct.toFixed(1)+"%",x.type]),
+      foot:[["Total incurred","$55,554.66","100%",""]]},
+    interp:"The fixed floor can't be negotiated, so cost control means attacking the tail: pool rentals for co-located PEs, enforce single-bag, run a documented fly-vs-drive comparison, and tighten TDY length so the daily floor isn't carried on low-utilization days."
+  },
+  discipline:{ menuLabel:"Cost Discipline (per day)", kpi:"$194.42", kpiLabel:"median $ / training day",
+    tag:"Steady-state cost per training day held in a tight $191–$197 band across seven deployments; the lone outlier is explained by duration, not waste.",
+    measures:"Per-deployment cost efficiency — adjusted training dollars divided by training days, with travel days removed.",
+    derivation:"$/training day = adjusted training cost ÷ training days. Median taken across the 8 deployments. PE-08 spans the full 44 days (the bridge), so its fixed daily floor is carried across more days.",
+    chartCap:"$ per training day — steady-state, travel days cut",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:DATA.cst26.perDeployment.map(p=>p.id),
+      datasets:[{data:DATA.cst26.perDeployment.map(p=>p.v),backgroundColor:DATA.cst26.perDeployment.map(p=>p.v>210?"#a6512b":"#0e8078")}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>"$"+x.raw.toFixed(2)+" / training day"}}},scales:{y:{ticks:{callback:v=>"$"+v}}}}}),
+    table:{caption:"Cost per training day — by deployment",head:["Deployment","$ / training day"],numeric:[1],
+      rows:DATA.cst26.perDeployment.map(p=>[p.id,"$"+p.v.toFixed(2)]),foot:[["Median (all 8)","$194.42"]]},
+    interp:"The seven 23-day deployments cluster within ~$6/day of each other — evidence of consistent, disciplined travel execution. PE-08's $259/day is not overspend; it is the 44-day bridge carrying the fixed daily floor across low-utilization days, a scheduling signal rather than a cost-control failure."
+  },
+  trackers:{ menuLabel:"Tracker Architecture", kpi:"$464K", kpiLabel:"committed across 4 chained trackers",
+    tag:"Four source trackers reconcile projected against incurred cost and chain, via Excel formulas, into one YTD roll-up — $464K committed to date feeding the Government briefs.",
+    measures:"The four financial source trackers maintained at the analyst level, their year-to-date spend, and how they consolidate.",
+    derivation:"Each tracker logs projected and incurred cost; chained formulas net the variance and roll up — by location and month — into the YTD Budget Tracker, which feeds the TOSR and A&L briefs.",
+    extra: trackerFlowHTML(),
+    chartCap:"Year-to-date spend by tracker",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["MTT","Site Visits","Local Miles","Supply / SOA"],
+      datasets:[{data:[301218.62,50426.04,2114.10,110246.06],backgroundColor:["#0e8078","#42617c","#a9843c","#a6512b"]}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>usd0(x.raw)}}},scales:{y:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"Tracker inventory — spent vs. projected (YTD)",head:["Tracker","Spent","Projected / Pending","Variance"],numeric:[1,2,3],
+      rows:[["MTT (training events)","$301,218.62","$527,328.60","$226,109.98 under"],
+        ["Management site visits","$50,426.04","$66,147.60","$15,721.56 under"],
+        ["Local mileage","$2,114.10","\u2014","\u2014"],
+        ["Supply / SOA","$110,246.06","$51,152.00 pending","\u2014"]],
+      foot:[["Total committed","$464,004.82","$644,628.20 proj.",""]]},
+    interp:"MTT (training-event travel) is by far the largest workstream at $301K; management site visits ran about 24% under their authorized projections. MTT's larger projected gap is partly schedule \u2014 it includes authorized August–September events not yet executed \u2014 not pure savings. The architectural value is one auditable roll-up in place of four disconnected spreadsheets."
+  },
+  mtt:{ menuLabel:"MTT Data", kpi:"$301.2K", kpiLabel:"MTT spend across 114 executed events (191 tracked)",
+    tag:"The Mobile Training Team travel program — 191 events tracked, 114 executed — reconciled monthly against authorized projections; executed events run consistently under estimate.",
+    measures:"Mobile Training Team (MTT) event travel: projected (authorized) cost versus incurred cost, by event and by month, from the Option Year 1 MTT event tracker.",
+    derivation:"Each MTT event logs projected vs. incurred cost; the delta is netted per event and rolled into the YTD MTT line ($301,218.62 incurred / $527,328.60 projected). Projected totals include authorized events not yet executed.",
+    chartCap:"MTT cost by month — projected vs. incurred",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep"],
+      datasets:[
+        {label:"Projected",data:[82929.14,8954.07,17317.54,27330.75,48225.57,28857.34,52771.47,68142.33,146387.25,21518.98,22264.98,2629.18],backgroundColor:"#c2c9d2"},
+        {label:"Incurred",data:[50954.89,4524.80,6924,18981.20,34389.67,13396.90,33851.15,53276.35,80853.16,4066.50,0,0],backgroundColor:"#0e8078"}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},
+        tooltip:{callbacks:{label:x=>x.dataset.label+": "+usd0(x.raw)}}},scales:{y:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"Largest MTT events — incurred vs. projected",head:["MTT event","Incurred","Projected","Under"],numeric:[1,2,3],
+      rows:[["MTT 25-01","$39,420.38","$65,050.36","39%"],
+        ["MTT 26-39","$30,723.50","$41,419.38","26%"],
+        ["MTT 26-93 (CST26, Batch 1)","$25,357.66","$72,821.29","65%"],
+        ["MTT 26-41","$22,518.71","$31,683.78","29%"],
+        ["MTT 26-62","$21,044.08","$23,371.25","10%"],
+        ["MTT 26-61.2","$8,791.57","$13,470.00","35%"]],
+      foot:[["MTT line — YTD","$301,218.62","$527,328.60","43%"]]},
+    interp:"MTT is the highest-volume workstream on the contract — 191 events tracked, 114 executed — and the one that most exercises the projected-vs-incurred reconciliation. Executed events land under their authorized estimates (the June surge alone ran $80.9K incurred against $146.4K projected), and MTT 26-93 is the Cadet Summer Training event analyzed in the CST26 tabs. The wider YTD gap partly reflects authorized August–September events not yet executed."
+  },
+  sitevisits:{ menuLabel:"Site Visit Management", kpi:"44%", kpiLabel:"of FY26 site visits complete (16 of 32)",
+    tag:"The management site-visit program tracked end to end — 16 of 32 planned visits executed, every completed trip under its authorized cost, ~23% under in aggregate.",
+    measures:"The management site-visit program: authorized travel cost (TAs) versus incurred cost (ERs), with the delta tracked per trip and completion against the plan.",
+    derivation:"Delta = projected TA cost − incurred ER cost, per trip and in aggregate. Completion = visits with a submitted/approved expense report ÷ total planned visits.",
+    chartCap:"Site-visit cost — projected (TA) vs. incurred (ER), YTD",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["Projected (TAs)","Incurred (ERs)"],
+      datasets:[{data:[57225.65,43964.89],backgroundColor:["#2c3746","#0e8078"]}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>usd2(x.raw)}}},scales:{y:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"Representative site visits — projected vs. incurred",head:["Location","Projected","Incurred","Delta"],numeric:[1,2,3],
+      rows:[["Humphreys & Zama","$6,683.65","$4,836.63","\u221228%"],
+        ["Humphreys & Zama","$5,961.71","$3,768.34","\u221237%"],
+        ["Fort Wainwright & JBER","$4,307.30","$3,342.00","\u221222%"],
+        ["Ft Bliss","$4,692.68","$3,888.88","\u221217%"],
+        ["Bliss & Hood","$4,431.43","$3,178.48","\u221228%"],
+        ["Leavenworth & Rucker","$3,696.81","$2,449.97","\u221234%"]],
+      foot:[["YTD \u2014 all L5 trips","$57,225.65","$43,964.89","\u221223%"]]},
+    interp:"Roughly half the planned visits are executed with the fiscal year still running, and every completed trip closed under its authorized travel cost — a $13,261 aggregate underrun (~23%). This is direct evidence of tight control on the discretionary travel the analyst manages day to day."
+  },
+  soa:{ menuLabel:"Supply Orders (SOA)", kpi:"$110.2K", kpiLabel:"supply spend YTD across 30+ sites",
+    tag:"Recurring performance-center supply buys plus other authorizations, tracked by site and month against the ODC ceiling — $110.2K spent YTD, $51.2K pending.",
+    measures:"Year-to-date Supply Order Authorization spend (Amazon + Staples recurring buys and other authorizations), by location, plus the current authorized order cycle.",
+    derivation:"Each order carries a +10% shipping/tax buffer; buys over $3,500 require three competitive quotes. Spend is logged estimated-then-incurred and rolled up by site and month.",
+    chartCap:"Top sites by YTD supply spend",
+    chart:(c)=> new Chart(c,{type:"bar",data:{labels:["Bliss","PMO","Carson","Benning","JBSA","JBLM","Japan","NCR"],
+      datasets:[{data:[9324.11,7428.13,6932.39,6775.95,6465.49,5949.66,5865.13,4906.83],backgroundColor:"#0e8078"}]},
+      options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:x=>usd2(x.raw)}}},scales:{x:{ticks:{callback:v=>usdK(v)}}}}}),
+    table:{caption:"Current authorized SOA cycle",head:["Site","Item","Est. cost","Status"],numeric:[2],
+      rows:[["Camp Zama","Training Supplies","$1,467.52","Open"],
+        ["PMO","CST Print Job","$5,501.31","Complete"],
+        ["PMO","OCONUS Laptop Shipment","$4,318.75","Open"],
+        ["Okinawa","Training Supplies","$3,840.82","Open"],
+        ["Carson","Training Supplies","$947.12","Complete"],
+        ["Bliss","Safety Supplies","$1,634.69","Complete"],
+        ["Vilseck","Printer Toner","$1,329.53","Complete"]],
+      foot:[["Total authorized","","$19,039.74",""]]},
+    interp:"Supply spend is broad-based — no single site dominates — with Bliss, the PMO, and the training-heavy installations leading. The current authorized cycle ($19K estimated) is small against the recurring Amazon/Staples baseline, and the segregation-of-duties controls apply to every order."
+  },
+  reporting:{ menuLabel:"Reporting & Process Modernization", kpi:"32", kpiLabel:"AOR sites on one supply-order standard",
+    tag:"Reporting rebuilt for the people who use it, and a single supply-order SOP pushed to every site.",
+    measures:"The reporting and process improvements delivered to Performance Center Managers across the AOR.",
+    derivation:"Qualitative delivery: A&L brief reconstruction + automation (with J. Choun); a full SOA SOP rewrite issued to all 32 sites; and a MS Teams community folder for navigation.",
+    extra: reportingHTML(),
+    interp:"Automation removes manual data extraction from the A&L build — cutting time and task-allocation waste — while the single SOP standard and Teams folder remove filing ambiguity and drive self-service adoption across 32 sites."
+  }
+};
+
+/* ---- table builder ---- */
+function buildTable(spec){
+  const wrap=el("div","panel");
+  const isNum=(i)=> spec.numeric ? spec.numeric.includes(i) : i>0;
+  let h=`<caption>${spec.caption}</caption><thead><tr>`+
+    spec.head.map((c,i)=>`<th${isNum(i)?' class="n"':''}>${c}</th>`).join("")+`</tr></thead><tbody>`;
+  spec.rows.forEach(r=>{ h+=`<tr>`+r.map((c,i)=>`<td${isNum(i)?' class="n"':''}>${c}</td>`).join("")+`</tr>`; });
+  h+=`</tbody>`;
+  if(spec.foot){ h+=`<tfoot>`+spec.foot.map(r=>`<tr>`+r.map((c,i)=>`<td${isNum(i)?' class="n"':''}>${c}</td>`).join("")+`</tr>`).join("")+`</tfoot>`; }
+  const t=document.createElement("table"); t.innerHTML=h; wrap.appendChild(t); return wrap;
+}
+
+/* ---- render / navigation ---- */
+const mainView=document.getElementById("mainView");
+const blufEl=document.getElementById("bluf");
+const analysisView=document.getElementById("analysisView");
+const anWrap=document.getElementById("anWrap");
+let anChart=null;
+
+function renderAnalysis(key){
+  const a=ANALYSES[key]; if(!a)return;
+  if(anChart){ try{anChart.destroy();}catch(e){} anChart=null; }
+  anWrap.innerHTML="";
+  const back=el("button","backbtn","← Full briefing"); back.type="button"; back.onclick=showBriefing; anWrap.appendChild(back);
+  const head=el("div","an-head");
+  head.innerHTML=`<p class="eyebrow">Metric analysis</p><div class="an-kpi"><span class="an-val">${a.kpi}</span><span class="an-lab">${a.kpiLabel}</span></div><p class="an-tag">${a.tag}</p>`;
+  anWrap.appendChild(head);
+  const g2=el("div","an-grid2");
+  g2.innerHTML=`<div class="an-block"><h4>What it measures</h4><p>${a.measures}</p></div><div class="an-block"><h4>How it's derived</h4><p>${a.derivation}</p></div>`;
+  anWrap.appendChild(g2);
+  if(a.extra){ const ex=el("div"); ex.style.margin="4px 0 20px"; ex.innerHTML=a.extra; anWrap.appendChild(ex); }
+  if(a.chart){
+    const p=el("div","panel"); p.style.marginBottom="18px";
+    if(a.chartCap) p.innerHTML=`<p class="cap">${a.chartCap}</p>`;
+    const box=el("div","chart-box tall"); const cv=document.createElement("canvas");
+    box.appendChild(cv); p.appendChild(box); anWrap.appendChild(p);
+    if(window.Chart){ try{ anChart=a.chart(cv); }catch(e){} }
+  }
+  if(a.table) anWrap.appendChild(buildTable(a.table));
+  const ip=el("div","an-interp"); ip.innerHTML=`<h4>Interpretation</h4><p>${a.interp}</p>`; anWrap.appendChild(ip);
+  if(a.rec){ const r=el("div","an-interp an-rec"); r.innerHTML=`<h4>Recommendation</h4><p>${a.rec}</p>`; anWrap.appendChild(r); }
+  applyReveal(anWrap);
+}
+function showAnalysis(key){
+  renderAnalysis(key);
+  blufEl.hidden=true; mainView.hidden=true; analysisView.hidden=false;
+  selLabel.textContent=ANALYSES[key].menuLabel; markActive(key);
+  window.scrollTo({top:0,behavior:reduce?"auto":"smooth"});
+}
+function showBriefing(){
+  analysisView.hidden=true; blufEl.hidden=false; mainView.hidden=false;
+  selLabel.textContent="Analyze a metric"; markActive("home");
+  if(window.Chart) setTimeout(()=>window.dispatchEvent(new Event("resize")),40);
+  window.scrollTo({top:0,behavior:reduce?"auto":"smooth"});
+}
+
+/* ---- dropdown ---- */
+const selector=document.getElementById("selector");
+const selBtn=document.getElementById("selBtn");
+const selMenu=document.getElementById("selMenu");
+const selLabel=document.getElementById("selLabel");
+function markActive(key){ selMenu.querySelectorAll(".sel-opt").forEach(o=>o.classList.toggle("active",o.dataset.key===key)); }
+(function buildMenu(){
+  const home=el("button","sel-opt home"); home.type="button"; home.dataset.key="home"; home.setAttribute("role","menuitem");
+  home.textContent="← Full briefing"; home.onclick=()=>{ closeMenu(); showBriefing(); };
+  selMenu.appendChild(home);
+  Object.entries(ANALYSES).forEach(([k,a])=>{
+    const o=el("button","sel-opt"); o.type="button"; o.dataset.key=k; o.setAttribute("role","menuitem");
+    o.innerHTML=`${a.menuLabel}<span class="ok">${a.kpi} · ${a.kpiLabel}</span>`;
+    o.onclick=()=>{ closeMenu(); showAnalysis(k); };
+    selMenu.appendChild(o);
+  });
+})();
+function openMenu(){ selMenu.hidden=false; selBtn.setAttribute("aria-expanded","true"); }
+function closeMenu(){ selMenu.hidden=true; selBtn.setAttribute("aria-expanded","false"); }
+selBtn.addEventListener("click",(e)=>{ e.stopPropagation(); selMenu.hidden?openMenu():closeMenu(); });
+document.addEventListener("click",(e)=>{ if(!selector.contains(e.target)) closeMenu(); });
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ closeMenu(); } });
+selMenu.addEventListener("keydown",(e)=>{
+  const opts=[...selMenu.querySelectorAll(".sel-opt")]; const i=opts.indexOf(document.activeElement);
+  if(e.key==="ArrowDown"){ e.preventDefault(); (opts[i+1]||opts[0]).focus(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); (opts[i-1]||opts[opts.length-1]).focus(); }
+});
+document.getElementById("tbHome").addEventListener("click",(e)=>{ e.preventDefault(); showBriefing(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{
+  "_handling": "UNCLASSIFIED // PORTFOLIO. Figures are roll-up/aggregate only, with personnel identifiers and task-order strings sanitized (PE-01..PE-08, task order genericized). Confirm releasability of aggregate contract-cost figures with your COR / contract guidance before making this repository public. To publish a fully notional version, replace the numeric values below.",
+  "analyst": {
+    "name": "Derrick M. Sprague",
+    "role": "Operations Analyst",
+    "org": "Knowesis, Inc.",
+    "client": "U.S. Army Ready and Resilient (R2) Program Management Office",
+    "engagementLine": "DoD PMO Task Order (Option Year 1)",
+    "clearance": "Secret (active) \u00b7 TS/SCI eligible",
+    "location": "Fort Eustis, VA"
+  },
+  "bluf": "An R2 PMO operations analyst function that converts fragmented DoD contract-financial data into a single auditable pipeline \u2014 sustaining continuous burn-rate visibility against a $2.7M ceiling across 32 installations, and turning a $55.5K training event into a documented 23.7% underrun with a costed process-improvement plan.",
+  "headline": [
+    { "value": 2715719.20, "display": "$2.72M", "label": "FY26 ODC ceiling modeled & tracked", "note": "cost-reimbursement line under a Firm-Fixed-Price TO" },
+    { "value": 32, "display": "32", "label": "DoD installations under continuous fiscal reporting", "note": "5 recurring products on a 4-day weekly cycle" },
+    { "value": 23.7, "display": "23.7%", "label": "cost underrun delivered vs authorization", "note": "CST26 event: $55.5K incurred vs $72.8K authorized" },
+    { "value": 83.2, "display": "83.2%", "label": "ODC runway held with live burn-rate visibility", "note": "$2.26M uncommitted of the FY26 ceiling" },
+    { "value": 50, "display": "50+", "label": "formula errors eliminated across 12 workbooks", "note": "accuracy hardening of the financial trackers" }
+  ],
+  "odc": {
+    "ceiling": 2715719.20,
+    "committed": 464004.82,
+    "uncommitted": 2261410.93,
+    "remainingPct": 83,
+    "travelSpentYTD": 353758.76,
+    "supplySpentYTD": 110246.06,
+    "pendingSOA": 51152.00,
+    "totalProjected": 644628.20,
+    "monthlyCommitted": {"Oct": 64283.51, "Nov": 14227.50, "Dec": 21513.28, "Jan": 27072.04, "Feb": 45229.23, "Mar": 30790.99, "Apr": 63030.96, "May": 83658.91, "Jun": 100773.85, "Jul": 12633.04, "Aug": 791.50, "Sep": 0},
+    "soaAuthorizedCount": 7,
+    "soaEstValue": 19039.74,
+    "soaIncurred": 4401.31,
+    "families": [
+      { "name": "SOA \u2014 Staples & Amazon (YTD)", "amount": 89452.37, "basis": "Recurring performance-center supply buys" },
+      { "name": "SOA \u2014 Other Authorizations (YTD)", "amount": 20793.69, "basis": "Non-recurring, OCONUS shipment, print" },
+      { "name": "SOA \u2014 Pending Authorizations", "amount": 51152.00, "basis": "Approved / queued, not yet incurred" }
+    ],
+    "controls": [
+      "Segregation of duties \u2014 originator, reviewer, and authorizer are always distinct",
+      "+10% shipping/tax buffer sets each request's authorization limit",
+      "Purchases over $3,500 require three competitive quotes",
+      "Dual authorization (APM/PM + COR-RA) before any funds are committed",
+      "Monthly QA spot checks with memo-documented corrective actions"
+    ]
+  },
+  "cst26": {
+    "eventDays": 44,
+    "window": "11 Jun \u2013 24 Jul 2026",
+    "deployments": 8,
+    "trainingDays": 191,
+    "cadets": 2000,
+    "incurred": 55554.66,
+    "authorized": 72821.29,
+    "underrun": 17266.63,
+    "underrunPct": 23.7,
+    "medianPerTrainingDay": 194.42,
+    "perCadet": 27.78,
+    "meanPerDeployment": 6944.33,
+    "perEventDay": 1262.61,
+    "fixed": 37539.22,
+    "fixedPct": 67.6,
+    "discretionary": 18015.44,
+    "discretionaryPct": 32.4,
+    "categories": [
+      { "name": "Lodging (room + tax)", "amount": 23888.22, "pct": 43.0, "type": "Fixed" },
+      { "name": "Meals & incidentals", "amount": 13651.00, "pct": 24.6, "type": "Fixed" },
+      { "name": "Rental car (+ fuel)", "amount": 10875.16, "pct": 19.6, "type": "Variable" },
+      { "name": "Airfare (+ baggage)", "amount": 6326.80, "pct": 11.4, "type": "Variable" },
+      { "name": "Ground transport & fees", "amount": 813.48, "pct": 1.5, "type": "Variable" }
+    ],
+    "perDeployment": [
+      { "id": "PE-01", "batch": "1", "costPerDay": 193.21 },
+      { "id": "PE-02", "batch": "1", "costPerDay": 195.09 },
+      { "id": "PE-03", "batch": "1", "costPerDay": 191.08 },
+      { "id": "PE-04", "batch": "1", "costPerDay": 194.18 },
+      { "id": "PE-05", "batch": "2", "costPerDay": 196.92 },
+      { "id": "PE-06", "batch": "2", "costPerDay": 194.27 },
+      { "id": "PE-07", "batch": "2", "costPerDay": 194.57 },
+      { "id": "PE-08", "batch": "1&2 bridge", "costPerDay": 259.39 }
+    ],
+    "cpi": [
+      { "lever": "Rental pooling", "detail": "Make shared rentals the standard for co-located PEs; one shared rental already ran $1,204 vs. two singles." },
+      { "lever": "Fly-vs-drive discipline", "detail": "Mandate a documented fly-vs-POV cost comparison in the travel authorization; two PEs drove 300\u2013340 mi." },
+      { "lever": "Book airfare \u2265 14 days out", "detail": "Close the $514\u2013$790 airfare spread by enforcing an advance-purchase window." },
+      { "lever": "Single-packet control", "detail": "One program coordinator as packet owner per PE, with a pre-submission checklist gate before COR-RA review." },
+      { "lever": "ER standardization", "detail": "Flat PDF/XLSX (not Adobe Portfolios) + task-order and date-match gates; caught a wrong TO citation and an uncountersigned ER." }
+    ]
+  },
+  "process": [
+    { "n": "1.0", "name": "Identify & Build", "owner": "Account User", "detail": "Identify the requirement, research price/quantity, build the vendor cart." },
+    { "n": "2.0", "name": "Draft the Form", "owner": "Account User", "detail": "Purpose, need-by date, itemized request, enclosure count." },
+    { "n": "3.0", "name": "Submit Packet", "owner": "Account User", "detail": "Consolidate form + cart screenshot into one PDF, filed by command and month." },
+    { "n": "4.0", "name": "PMO Review", "owner": "Ops / Training Analyst", "detail": "On-the-spot review for accuracy, compliance, and lowest available cost." },
+    { "n": "5.0", "name": "Authorize", "owner": "APM/PM \u2192 COR-RA", "detail": "Dual signature \u2014 the Government authorization to purchase." },
+    { "n": "6.0", "name": "Purchase", "owner": "Training Analyst", "detail": "Execute the buy once COR-RA authorization is in place." },
+    { "n": "7.0", "name": "Record & Track", "owner": "Ops Analyst", "detail": "Log estimated vs incurred cost and status in the Option Year 1 tracker; detail to PERFAC." },
+    { "n": "8.0", "name": "Report & QA", "owner": "PMO", "detail": "Roll into YTD/by-location views feeding the TOSR & A&L briefs; monthly QA." }
+  ],
+  "trackers": [
+    { "name": "MTT Tracker", "tracks": "Mobile Training Team events", "spent": 301218.62, "projected": 527328.60, "detail": "Incurred vs. projected cost per event; the CST26 fiscal assessment is one output." },
+    { "name": "Local Travel", "tracks": "Per-trip status & cost", "spent": 2114.10, "detail": "Local mileage logged; PCMs contacted directly when packets are returned for correction." },
+    { "name": "Site Visits", "tracks": "Management site circulation", "spent": 50426.04, "projected": 66147.60, "detail": "Projected vs. incurred tracked with the delta surfaced for leadership." },
+    { "name": "SOA Tracker", "tracks": "Supply Order Authorizations", "spent": 110246.06, "pending": 51152.00, "detail": "Each order estimated vs. incurred; $110K supply spend YTD, $51K pending." }
+  ],
+  "siteVisits": {
+    "completed": 16, "planned": 32, "completionPct": 44,
+    "projectedTA": 57225.65, "incurredER": 43964.89, "deltaDollars": 13260.76, "deltaPct": -23,
+    "representative": [
+      { "location": "Humphreys & Zama", "projected": 6683.65, "incurred": 4836.63 },
+      { "location": "Humphreys & Zama", "projected": 5961.71, "incurred": 3768.34 },
+      { "location": "Fort Wainwright & JBER", "projected": 4307.30, "incurred": 3342.00 },
+      { "location": "Ft Bliss", "projected": 4692.68, "incurred": 3888.88 },
+      { "location": "Bliss & Hood", "projected": 4431.43, "incurred": 3178.48 },
+      { "location": "Leavenworth & Rucker", "projected": 3696.81, "incurred": 2449.97 }
+    ]
+  },
+  "supplyByLocationYTD": [
+    { "site": "Bliss", "amount": 9324.11 }, { "site": "PMO", "amount": 7428.13 },
+    { "site": "Carson", "amount": 6932.39 }, { "site": "Benning", "amount": 6775.95 },
+    { "site": "JBSA", "amount": 6465.49 }, { "site": "JBLM", "amount": 5949.66 },
+    { "site": "Japan", "amount": 5865.13 }, { "site": "NCR", "amount": 4906.83 }
+  ],
+  "mtt": {
+    "eventsTracked": 191, "eventsExecuted": 114,
+    "incurredYTD": 301218.62, "projectedYTD": 527328.60,
+    "monthlyIncurred": {"Oct": 50954.89, "Nov": 4524.80, "Dec": 6924, "Jan": 18981.20, "Feb": 34389.67, "Mar": 13396.90, "Apr": 33851.15, "May": 53276.35, "Jun": 80853.16, "Jul": 4066.50, "Aug": 0, "Sep": 0},
+    "monthlyProjected": {"Oct": 82929.14, "Nov": 8954.07, "Dec": 17317.54, "Jan": 27330.75, "Feb": 48225.57, "Mar": 28857.34, "Apr": 52771.47, "May": 68142.33, "Jun": 146387.25, "Jul": 21518.98, "Aug": 22264.98, "Sep": 2629.18},
+    "topEvents": [
+      { "event": "MTT 25-01", "incurred": 39420.38, "projected": 65050.36 },
+      { "event": "MTT 26-39", "incurred": 30723.50, "projected": 41419.38 },
+      { "event": "MTT 26-93 (CST26, Batch 1)", "incurred": 25357.66, "projected": 72821.29 },
+      { "event": "MTT 26-41", "incurred": 22518.71, "projected": 31683.78 },
+      { "event": "MTT 26-62", "incurred": 21044.08, "projected": 23371.25 },
+      { "event": "MTT 26-61.2", "incurred": 8791.57, "projected": 13470.00 }
+    ]
+  },
+  "reporting": [
+    { "title": "A&L brief reconstruction & automation", "detail": "Rebuilt the A&L slides into a PCM-friendly format and, with J. Choun, automated the report build to cut manual data extraction and time/task waste.", "tags": ["PCM usability", "automation", "waste reduction"] },
+    { "title": "SOA SOP revamp \u2014 all 32 AOR sites", "detail": "Rewrote the entire Supply Order Authorization SOP and issued guidance to every AOR site, resolving prior filing/naming ambiguity into a single standard.", "tags": ["32 sites", "single standard"] },
+    { "title": "MS Teams community folder", "detail": "Stood up a Teams community folder with explicit, step-by-step guidance for navigating the supply-order process.", "tags": ["adoption", "self-service"] }
+  ],
+  "pipeline": ["SOA Request Form", "PERFAC", "Option Year 1 Tracker", "YTD / By-Location", "TOSR & A&L Briefs"],
+  "stack": {
+    "analytics": ["Excel / Power Query", "Power BI", "Tableau", "R", "SQL", "Financial Modeling"],
+    "web": ["HTML5", "CSS3", "JavaScript (ES6)", "Chart.js", "Node.js / Express (API stub)"],
+    "methods": ["ICD 203", "Lean Six Sigma (Green Belt)", "OSINT", "Cost/variance analysis", "Process (CPI) design"]
+  }
+}
